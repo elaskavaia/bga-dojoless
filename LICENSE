@@ -1,3 +1,51 @@
+Skip to content
+Search or jump to…
+Pull requests
+Issues
+Marketplace
+Explore
+ 
+@elaskavaia 
+elaskavaia
+/
+bga-dojoless
+Public
+Code
+Issues
+Pull requests
+Actions
+Projects
+Wiki
+Security
+Insights
+Settings
+bga-dojoless/LICENSE
+elaskavaia/bga-dojoless is licensed under the
+
+Eclipse Public License 2.0
+This commercially-friendly copyleft license provides the ability to commercially license binaries; a modern royalty-free patent license grant; and the ability for linked works to use other licenses, including commercial ones.
+
+Permissions
+ Commercial use
+ Distribution
+ Modification
+ Patent use
+ Private use
+Limitations
+ Liability
+ Warranty
+Conditions
+ Disclose source
+ License and copyright notice
+ Same license
+This is not legal advice. Learn more about repository licenses.
+@elaskavaia
+elaskavaia Initial commit
+Latest commit ddbac94 26 seconds ago
+ History
+ 1 contributor
+277 lines (228 sloc)  13.9 KB
+
 Eclipse Public License - v 2.0
 
     THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE
@@ -275,3 +323,17 @@ version(s), and exceptions or additional permissions here}."
   look for such a notice.
 
   You may add additional accurate notices of copyright ownership.
+Footer
+© 2022 GitHub, Inc.
+Footer navigation
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
