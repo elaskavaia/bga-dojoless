@@ -1,58 +1,193 @@
-/**
- *------
- * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
- * dojoless implementation : © Alena Laskavaia <laskava@gmail.com>
- *
- * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
- * See http://en.boardgamearena.com/#!doc/Studio for more information.
- * -----
- *
- * dojoless.js
- *
- * dojoless user interface script
- *
- * In this file, you are describing the logic of your user interface, in Javascript language.
- *
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+// @ts-ignore
+GameGui = /** @class */ (function () {
+    function GameGui() { }
+    return GameGui;
+})();
+/** Class that extends default bga core game class with more functionality
  */
-
-// This is ugly dojo stuff
-// See game code in modules/Dojoless.js
-
-define([
-  "dojo",
-  "dojo/_base/declare",
-  "ebg/core/gamegui",
-  "ebg/counter", // have to stay
-  g_gamethemeurl + "/modules/MyFoo.js", // custom module if needed
-  g_gamethemeurl + "/modules/Dojoless.js", // this is actual game
-], function (dojo, declare) {
-  declare("bgagame.dojoless", [ebg.core.gamegui], {
-    constructor: function () {
-      customMixin(this, new Dojoless());
-    },
-  });
-});
-
-/**
- *
- * @param {object} dest
- * @param {object} source
- */
-function customMixin(dest, source) {
-  let prot = source;
-  dest.super = {};
-  while (Object.getPrototypeOf(prot) != Object.prototype) {
-    prot = Object.getPrototypeOf(prot);
-    Object.getOwnPropertyNames(prot).forEach((name) => {
-      if (name !== "constructor") {
-        if (dest[name] !== undefined) {
-          // preserve the original for inheritance
-          console.log("Overriding " + name + " " + typeof dest[name]);
-          dest.super[name] = dojo.hitch(dest, dest[name]);
+var GameBasics = /** @class */ (function (_super) {
+    __extends(GameBasics, _super);
+    function GameBasics() {
+        var _this = _super.call(this) || this;
+        console.log("game constructor");
+        _this.curstate = null;
+        _this.pendingUpdate = false;
+        _this.currentPlayerWasActive = false;
+        return _this;
+    }
+    // state hooks
+    GameBasics.prototype.setup = function (gamedatas) {
+        console.log("Starting game setup", gameui);
+        this.gamedatas = gamedatas;
+    };
+    GameBasics.prototype.onEnteringState = function (stateName, args) {
+        console.log("onEnteringState: " + stateName, args, this.debugStateInfo());
+        this.curstate = stateName;
+        // Call appropriate method
+        args = args ? args.args : null; // this method has extra wrapper for args for some reason
+        var methodName = "onEnteringState_" + stateName;
+        this.callfn(methodName, args);
+        if (this.pendingUpdate) {
+            this.onUpdateActionButtons(stateName, args);
+            this.pendingUpdate = false;
         }
-        dest[name] = dojo.hitch(dest, source[name]);
-      }
-    });
-  }
-  dojo.safeMixin(dest, source);
-}
+    };
+    GameBasics.prototype.onLeavingState = function (stateName) {
+        console.log("onLeavingState: " + stateName, this.debugStateInfo());
+        this.currentPlayerWasActive = false;
+    };
+    GameBasics.prototype.onUpdateActionButtons = function (stateName, args) {
+        if (this.curstate != stateName) {
+            // delay firing this until onEnteringState is called so they always called in same order
+            this.pendingUpdate = true;
+            //console.log('   DELAYED onUpdateActionButtons');
+            return;
+        }
+        this.pendingUpdate = false;
+        if (gameui.isCurrentPlayerActive() && this.currentPlayerWasActive == false) {
+            console.log("onUpdateActionButtons: " + stateName, args, this.debugStateInfo());
+            this.currentPlayerWasActive = true;
+            // Call appropriate method
+            this.callfn("onUpdateActionButtons_" + stateName, args);
+        }
+        else {
+            this.currentPlayerWasActive = false;
+        }
+    };
+    // utils
+    GameBasics.prototype.debugStateInfo = function () {
+        var iscurac = gameui.isCurrentPlayerActive();
+        var replayMode = false;
+        if (typeof g_replayFrom != "undefined") {
+            replayMode = true;
+        }
+        var instantaneousMode = gameui.instantaneousMode ? true : false;
+        var res = {
+            isCurrentPlayerActive: iscurac,
+            instantaneousMode: instantaneousMode,
+            replayMode: replayMode,
+        };
+        return res;
+    };
+    GameBasics.prototype.ajaxcallwrapper = function (action, args, handler) {
+        if (!args) {
+            args = {};
+        }
+        args.lock = true;
+        if (gameui.checkAction(action)) {
+            gameui.ajaxcall("/" + gameui.game_name + "/" + gameui.game_name + "/" + action + ".html", args, //
+            gameui, function (result) { }, handler);
+        }
+    };
+    GameBasics.prototype.createHtml = function (divstr, location) {
+        var tempHolder = document.createElement("div");
+        tempHolder.innerHTML = divstr;
+        var div = tempHolder.firstElementChild;
+        var parentNode = document.getElementById(location);
+        if (parentNode)
+            parentNode.appendChild(div);
+        return div;
+    };
+    GameBasics.prototype.createDiv = function (id, classes, location) {
+        var div = document.createElement("div");
+        if (id)
+            div.id = id;
+        if (classes)
+            (_a = div.classList).add.apply(_a, classes.split(" "));
+        var parentNode = document.getElementById(location);
+        if (parentNode)
+            parentNode.appendChild(div);
+        return div;
+        var _a;
+    };
+    /**
+     *
+     * @param {string} methodName
+     * @param {object} args
+     * @returns
+     */
+    GameBasics.prototype.callfn = function (methodName, args) {
+        if (this[methodName] !== undefined) {
+            console.log("Calling " + methodName, args);
+            return this[methodName](args);
+        }
+        return undefined;
+    };
+    /** @Override onScriptError from gameui */
+    GameBasics.prototype.onScriptError = function (msg, url, linenumber) {
+        if (gameui.page_is_unloading) {
+            // Don't report errors during page unloading
+            return;
+        }
+        // In anycase, report these errors in the console
+        console.error(msg);
+        // cannot call super - dojo still have to used here
+        //super.onScriptError(msg, url, linenumber);
+        return this.inherited(arguments);
+    };
+    return GameBasics;
+}(GameGui));
+/**
+ * Custom module
+ */
+var CustomModule = /** @class */ (function () {
+    function CustomModule() {
+    }
+    CustomModule.prototype.setup = function (gamedatas) {
+        this.gamedatas = gamedatas;
+        console.log("hello from setup of MyFoo");
+    };
+    return CustomModule;
+}());
+;
+/** Game class */
+var GameBody = /** @class */ (function (_super) {
+    __extends(GameBody, _super);
+    function GameBody() {
+        var _this = _super.call(this) || this;
+        _this.varfoo = new CustomModule(); // this example of class from custom module
+        return _this;
+    }
+    GameBody.prototype.setup = function (gamedatas) {
+        _super.prototype.setup.call(this, gamedatas);
+        //super.setup(gamedatas);
+        this.createDiv(undefined, "whiteblock cow", "thething").innerHTML = _("Should we eat the cow?");
+        this.varfoo.setup(gamedatas);
+        console.log("Ending game setup");
+    };
+    // on click hooks
+    GameBody.prototype.onButtonClick = function (event) {
+        console.log("onButtonClick", event);
+    };
+    GameBody.prototype.onUpdateActionButtons_playerTurnA = function (args) {
+        var _this = this;
+        this.addActionButton("b1", _("Play Card"), function () { return _this.ajaxcallwrapper("playCard"); });
+        this.addActionButton("b2", _("Vote"), function () { return _this.ajaxcallwrapper("playVote"); });
+        this.addActionButton("b3", _("Pass"), function () { return _this.ajaxcallwrapper("pass"); });
+    };
+    GameBody.prototype.onUpdateActionButtons_playerTurnB = function (args) {
+        var _this = this;
+        this.addActionButton("b1", _("Support"), function () { return _this.ajaxcallwrapper("playSupport"); });
+        this.addActionButton("b2", _("Oppose"), function () { return _this.ajaxcallwrapper("playOppose"); });
+        this.addActionButton("b3", _("Wait"), function () { return _this.ajaxcallwrapper("playWait"); });
+    };
+    return GameBody;
+}(GameBasics));
+define([
+    "dojo",
+    "dojo/_base/declare",
+    "ebg/core/gamegui",
+    "ebg/counter"
+], function (dojo, declare) {
+    declare("bgagame.dojoless", ebg.core.gamegui, new GameBody());
+});

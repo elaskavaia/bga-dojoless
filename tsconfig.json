@@ -1,0 +1,14 @@
+{
+  "rootDir": ".",
+  "compilerOptions": {
+    "target": "es5",
+    "module": "none",
+    "lib": ["dom", "esnext"],
+    "sourceMap": false,
+    "outFile": "dojoless.js",
+    "typeRoots": ["misc/src/types", "./types", "./node_modules/@types"]
+  },
+
+  "include": ["misc/src/**/GameBasics.ts","misc/src/**/*.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}
