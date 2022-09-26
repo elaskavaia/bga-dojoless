@@ -6,9 +6,9 @@
     "lib": ["dom", "esnext"],
     "sourceMap": false,
     "outFile": "dojoless.js",
-    "typeRoots": ["misc/src/types", "./types", "./node_modules/@types"]
+    "typeRoots": ["src/types", "./types", "./node_modules/@types"]
   },
 
-  "include": ["misc/src/**/GameBasics.ts","misc/src/**/*.ts"],
+  "include": ["src/**/GameBasics.ts","src/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }

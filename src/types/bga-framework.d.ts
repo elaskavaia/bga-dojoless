@@ -8,8 +8,6 @@ declare function _(str: string): string;
 
 declare const define;
 declare const ebg;
-//declare const dojo;
-declare var dojo: any;
 
 declare class GameGui {
 	page_is_unloading: any;

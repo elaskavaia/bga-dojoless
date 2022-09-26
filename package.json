@@ -1,0 +1,19 @@
+{
+  "name": "bga.dojoless",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dojoless.js",
+  "scripts": {
+    "build:ts": "tsc",
+    "build:scss": "sass --no-source-map src/dojoless.scss dojoless.css",
+    "watch:ts": "tsc --watch",
+    "watch:scss": "sass --watch src/dojoless.scss dojoless.css",
+    "watch": "npm run watch:ts && npm run watch:sass"
+  },
+  "author": "Alena Laskavaia",
+  "license": "EPL2.0",
+  "devDependencies": {
+    "sass": "^1.32.6",
+    "typescript": "^4.1.3"
+  }
+}
