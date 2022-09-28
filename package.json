@@ -8,7 +8,8 @@
     "build:scss": "sass --no-source-map src/dojoless.scss dojoless.css",
     "watch:ts": "tsc --watch",
     "watch:scss": "sass --watch src/dojoless.scss dojoless.css",
-    "watch": "npm run watch:ts && npm run watch:sass"
+    "watch": "npm run watch:ts && npm run watch:scss",
+    "build": "npm run build:ts && npm run build:scss"
   },
   "author": "Alena Laskavaia",
   "license": "EPL2.0",
