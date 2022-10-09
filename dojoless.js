@@ -168,6 +168,7 @@ var GameBody = /** @class */ (function (_super) {
         //super.setup(gamedatas);
         this.createDiv(undefined, "whiteblock cow", "thething").innerHTML = _("Should we eat the cow?");
         this.varfoo.setup(gamedatas);
+        this.setupNotifications();
         console.log("Ending game setup");
     };
     // on click hooks
@@ -185,6 +186,16 @@ var GameBody = /** @class */ (function (_super) {
         this.addActionButton("b1", _("Support"), function () { return _this.ajaxcallwrapper("playSupport"); });
         this.addActionButton("b2", _("Oppose"), function () { return _this.ajaxcallwrapper("playOppose"); });
         this.addActionButton("b3", _("Wait"), function () { return _this.ajaxcallwrapper("playWait"); });
+    };
+    GameBody.prototype.setupNotifications = function () {
+        for (var m in this) {
+            if (typeof this[m] == "function" && m.startsWith("notif_")) {
+                dojo.subscribe(m.substring(6), this, m);
+            }
+        }
+    };
+    GameBody.prototype.notif_message = function (notif) {
+        console.log("notif", notif);
     };
     return GameBody;
 }(GameBasics));

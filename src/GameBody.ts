@@ -5,12 +5,13 @@ class GameBody extends GameBasics {
     super();
     this.varfoo = new CustomModule(); // this example of class from custom module
   }
-  
+
   setup(gamedatas) {
     super.setup(gamedatas);
     //super.setup(gamedatas);
-    this.createDiv(undefined,"whiteblock cow","thething").innerHTML=_("Should we eat the cow?");
+    this.createDiv(undefined, "whiteblock cow", "thething").innerHTML = _("Should we eat the cow?");
     this.varfoo.setup(gamedatas);
+    this.setupNotifications();
     console.log("Ending game setup");
   }
 
@@ -28,5 +29,17 @@ class GameBody extends GameBasics {
     this.addActionButton("b1", _("Support"), () => this.ajaxcallwrapper("playSupport"));
     this.addActionButton("b2", _("Oppose"), () => this.ajaxcallwrapper("playOppose"));
     this.addActionButton("b3", _("Wait"), () => this.ajaxcallwrapper("playWait"));
+  }
+
+  setupNotifications(): void {
+    for (var m in this) {
+      if (typeof this[m] == "function" && m.startsWith("notif_")) {
+        dojo.subscribe(m.substring(6), this, m);
+      }
+    }
+  }
+
+  notif_message(notif: any): void {
+    console.log("notif", notif);
   }
 }

@@ -200,7 +200,7 @@ class dojoless extends Table
     
     function action_playWait() {
         self::checkAction('playOppose');
-        $player_id = self::getCurrentPlayer();
+        $player_id = self::getCurrentPlayerId();
         self::notifyAllPlayers("message", clienttranslate('${player_name} waits'), [
                 'player_id' => $player_id,'player_name' => self::getActivePlayerName()
                 
