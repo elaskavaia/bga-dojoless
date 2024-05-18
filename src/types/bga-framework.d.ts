@@ -3,6 +3,7 @@ declare var g_replayFrom: number | undefined;
 declare var g_gamethemeurl: string;
 declare var g_themeurl: string;
 declare var g_archive_mode: boolean;
+declare var g_img_preload: string[];
 declare function _(str: string): string;
 declare function __(site: string, str: string): string;
 declare function $(text: string | Element): HTMLElement;
@@ -39,6 +40,8 @@ declare class GameNotifQueue {
    * NOTE: this cannot be used for syncronious unbound notifications
    */
   setIgnoreNotificationCheck(notif_type: string, predicate: (notif: object) => boolean): void;
+
+  next_log_id: number;
 }
 declare interface Notif {
   type: string; // type of the notification (as passed by php function)
@@ -82,12 +85,15 @@ declare class GameGui {
   prefs: any[];
   table_id: number;
   metasiteurl: string;
+  interface_status: string;
+  next_log_id: number;
+
 
   isCurrentPlayerActive(): boolean;
   getActivePlayerId(): number;
   addActionButton(id: string, label: string, method: string | eventhandler, destination?: string, blinking?: boolean, color?: string): void;
   checkAction(action: any): boolean;
-  ajaxcall(url: string, args: object, bind: GameGui, resultHandler: (result: any) => void, allHandler: (err: any) => void): void;
+  ajaxcall(url: string, args: object, bind: GameGui, resultHandler: (result: any) => void, allHandler?: (err: any, result?: any) => void): void;
   connect(node: ElementOrId, ontype: string, handler: any): void;
   disconnect(node: ElementOrId, ontype: string): void;
   connectClass(cls:string, ontype: string, handler: any):void;
@@ -143,4 +149,8 @@ declare class GameGui {
 
   enablePlayerPanel(player_id: number):void;
   disablePlayerPanel(player_id: number):void;
+
+  dontPreloadImage(image_file_name: string):void;
+  ensureSpecificGameImageLoading(list: string[]):void;
+  updatePageTitle(gamestate: any);
 }
