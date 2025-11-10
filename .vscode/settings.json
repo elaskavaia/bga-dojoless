@@ -1,0 +1,28 @@
+{
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": ".*\\.ts$",
+        "isAsync": true,
+        "cmd": "npm run build:ts"
+      },
+      {
+        "match": ".*\\.scss$",
+        "isAsync": true,
+        "cmd": "npm run build:scss"
+      },
+      {
+        "match": "misc/.*material\\.csv$",
+        "isAsync": true,
+        "cmd": "php8.4 misc/other/genmat.php ${file}"
+      }
+    ]
+  },
+
+  "prettier.printWidth": 140,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSaveMode": "file",
+  "editor.formatOnSave": true,
+  "eslint.codeActionsOnSave.mode": "problems",
+  "eslint.codeActionsOnSave.rules": []
+}

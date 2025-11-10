@@ -4,7 +4,6 @@ GameGui = /** @class */ (function () {
   return GameGui;
 })();
 
-
 /** Class that extends default bga core game class with more functionality
  */
 
@@ -22,17 +21,16 @@ class GameBasics extends GameGui {
   }
 
   // state hooks
-  setup(gamedatas) {
-    console.log("Starting game setup", gameui);
-    this.gamedatas = gamedatas;
+  setup(gamedatas: any) {
+    console.log("Starting game setup", gamedatas);
   }
 
-  onEnteringState(stateName, args) {
-    console.log("onEnteringState: " + stateName, args, this.debugStateInfo());
+  onEnteringState(stateName: string, eargs: { args: object }) {
+    console.log("onEnteringState", stateName, eargs, this.debugStateInfo());
     this.curstate = stateName;
     // Call appropriate method
-    args = args ? args.args : null; // this method has extra wrapper for args for some reason
-    var methodName = "onEnteringState_" + stateName;
+    const args = eargs?.args; // this method has extra wrapper for args for some reason
+    const methodName = "onEnteringState_" + stateName;
     this.callfn(methodName, args);
 
     if (this.pendingUpdate) {
@@ -41,12 +39,14 @@ class GameBasics extends GameGui {
     }
   }
 
-  onLeavingState(stateName) {
-    console.log("onLeavingState: " + stateName, this.debugStateInfo());
+  onLeavingState(stateName: string) {
+    console.log("onLeavingState", stateName, this.debugStateInfo());
     this.currentPlayerWasActive = false;
+    const methodName = "onLeavingState_" + stateName;
+    this.callfn(methodName, {});
   }
 
-  onUpdateActionButtons(stateName, args) {
+  onUpdateActionButtons(stateName: string, args: object) {
     if (this.curstate != stateName) {
       // delay firing this until onEnteringState is called so they always called in same order
       this.pendingUpdate = true;
@@ -66,61 +66,20 @@ class GameBasics extends GameGui {
 
   // utils
   debugStateInfo() {
-    var iscurac = gameui.isCurrentPlayerActive();
-    var replayMode = false;
+    let replayMode = false;
     if (typeof g_replayFrom != "undefined") {
       replayMode = true;
     }
-    var instantaneousMode = gameui.instantaneousMode ? true : false;
-    var res = {
-      isCurrentPlayerActive: iscurac,
-      instantaneousMode: instantaneousMode,
-      replayMode: replayMode,
+
+    const res = {
+      isCurrentPlayerActive: gameui.isCurrentPlayerActive(),
+      animationsActive: gameui.bgaAnimationsActive(),
+      replayMode: replayMode
     };
     return res;
   }
-  ajaxcallwrapper(action: string, args?: any, handler?) {
-    if (!args) {
-      args = {};
-    }
-    args.lock = true;
 
-    if (gameui.checkAction(action)) {
-      gameui.ajaxcall(
-        "/" + gameui.game_name + "/" + gameui.game_name + "/" + action + ".html",
-        args, //
-        gameui,
-        (result) => {},
-        handler
-      );
-    }
-  }
-
-  createHtml(divstr: string, location?: string) {
-    const tempHolder = document.createElement("div");
-    tempHolder.innerHTML = divstr;
-    const div = tempHolder.firstElementChild;
-    const parentNode = document.getElementById(location);
-    if (parentNode) parentNode.appendChild(div);
-    return div;
-  }
-
-  createDiv(id?: string | undefined, classes?: string, location?: string) {
-    const div = document.createElement("div");
-    if (id) div.id  = id;
-    if (classes) div.classList.add(...classes.split(" "));
-    const parentNode = document.getElementById(location);
-    if (parentNode) parentNode.appendChild(div);
-    return div;
-  }
-
-  /**
-   *
-   * @param {string} methodName
-   * @param {object} args
-   * @returns
-   */
-  callfn(methodName, args) {
+  callfn(methodName: string, args: object) {
     if (this[methodName] !== undefined) {
       console.log("Calling " + methodName, args);
       return this[methodName](args);
@@ -128,7 +87,7 @@ class GameBasics extends GameGui {
     return undefined;
   }
   /** @Override onScriptError from gameui */
-  onScriptError(msg, url, linenumber) {
+  onScriptError(msg: any, url, linenumber) {
     if (gameui.page_is_unloading) {
       // Don't report errors during page unloading
       return;
@@ -138,5 +97,17 @@ class GameBasics extends GameGui {
     // cannot call super - dojo still have to used here
     //super.onScriptError(msg, url, linenumber);
     return this.inherited(arguments);
+  }
+
+  bgaFormatText(log: string, args: any) {
+    if (log && args && !args.processed) {
+      args.processed = true;
+
+      if (args.player_id && !args.player_name) {
+        args.player_name = this.gamedatas.players[args.player_id].name;
+      }
+    }
+
+    return { log, args };
   }
 }

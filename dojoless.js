@@ -32,14 +32,13 @@ var GameBasics = /** @class */ (function (_super) {
     }
     // state hooks
     GameBasics.prototype.setup = function (gamedatas) {
-        console.log("Starting game setup", gameui);
-        this.gamedatas = gamedatas;
+        console.log("Starting game setup", gamedatas);
     };
-    GameBasics.prototype.onEnteringState = function (stateName, args) {
-        console.log("onEnteringState: " + stateName, args, this.debugStateInfo());
+    GameBasics.prototype.onEnteringState = function (stateName, eargs) {
+        console.log("onEnteringState", stateName, eargs, this.debugStateInfo());
         this.curstate = stateName;
         // Call appropriate method
-        args = args ? args.args : null; // this method has extra wrapper for args for some reason
+        var args = eargs === null || eargs === void 0 ? void 0 : eargs.args; // this method has extra wrapper for args for some reason
         var methodName = "onEnteringState_" + stateName;
         this.callfn(methodName, args);
         if (this.pendingUpdate) {
@@ -48,8 +47,10 @@ var GameBasics = /** @class */ (function (_super) {
         }
     };
     GameBasics.prototype.onLeavingState = function (stateName) {
-        console.log("onLeavingState: " + stateName, this.debugStateInfo());
+        console.log("onLeavingState", stateName, this.debugStateInfo());
         this.currentPlayerWasActive = false;
+        var methodName = "onLeavingState_" + stateName;
+        this.callfn(methodName, {});
     };
     GameBasics.prototype.onUpdateActionButtons = function (stateName, args) {
         if (this.curstate != stateName) {
@@ -71,56 +72,17 @@ var GameBasics = /** @class */ (function (_super) {
     };
     // utils
     GameBasics.prototype.debugStateInfo = function () {
-        var iscurac = gameui.isCurrentPlayerActive();
         var replayMode = false;
         if (typeof g_replayFrom != "undefined") {
             replayMode = true;
         }
-        var instantaneousMode = gameui.instantaneousMode ? true : false;
         var res = {
-            isCurrentPlayerActive: iscurac,
-            instantaneousMode: instantaneousMode,
-            replayMode: replayMode,
+            isCurrentPlayerActive: gameui.isCurrentPlayerActive(),
+            animationsActive: gameui.bgaAnimationsActive(),
+            replayMode: replayMode
         };
         return res;
     };
-    GameBasics.prototype.ajaxcallwrapper = function (action, args, handler) {
-        if (!args) {
-            args = {};
-        }
-        args.lock = true;
-        if (gameui.checkAction(action)) {
-            gameui.ajaxcall("/" + gameui.game_name + "/" + gameui.game_name + "/" + action + ".html", args, //
-            gameui, function (result) { }, handler);
-        }
-    };
-    GameBasics.prototype.createHtml = function (divstr, location) {
-        var tempHolder = document.createElement("div");
-        tempHolder.innerHTML = divstr;
-        var div = tempHolder.firstElementChild;
-        var parentNode = document.getElementById(location);
-        if (parentNode)
-            parentNode.appendChild(div);
-        return div;
-    };
-    GameBasics.prototype.createDiv = function (id, classes, location) {
-        var _a;
-        var div = document.createElement("div");
-        if (id)
-            div.id = id;
-        if (classes)
-            (_a = div.classList).add.apply(_a, classes.split(" "));
-        var parentNode = document.getElementById(location);
-        if (parentNode)
-            parentNode.appendChild(div);
-        return div;
-    };
-    /**
-     *
-     * @param {string} methodName
-     * @param {object} args
-     * @returns
-     */
     GameBasics.prototype.callfn = function (methodName, args) {
         if (this[methodName] !== undefined) {
             console.log("Calling " + methodName, args);
@@ -139,6 +101,15 @@ var GameBasics = /** @class */ (function (_super) {
         // cannot call super - dojo still have to used here
         //super.onScriptError(msg, url, linenumber);
         return this.inherited(arguments);
+    };
+    GameBasics.prototype.bgaFormatText = function (log, args) {
+        if (log && args && !args.processed) {
+            args.processed = true;
+            if (args.player_id && !args.player_name) {
+                args.player_name = this.gamedatas.players[args.player_id].name;
+            }
+        }
+        return { log: log, args: args };
     };
     return GameBasics;
 }(GameGui));
@@ -160,14 +131,14 @@ var GameBody = /** @class */ (function (_super) {
     __extends(GameBody, _super);
     function GameBody() {
         var _this = _super.call(this) || this;
-        _this.varfoo = new CustomModule(); // this example of class from custom module
+        _this.custom = new CustomModule(); // this example of class from custom module
         return _this;
     }
     GameBody.prototype.setup = function (gamedatas) {
         _super.prototype.setup.call(this, gamedatas);
         //super.setup(gamedatas);
-        this.createDiv(undefined, "whiteblock cow", "thething").innerHTML = _("Should we eat the cow?");
-        this.varfoo.setup(gamedatas);
+        this.getGameAreaElement().insertAdjacentHTML("beforeend", " \n<div id=\"thething\">\n  <div class=\"whiteblock cow\">".concat(_("Should we eat the cow now?"), "</div>\n</div>\n      "));
+        this.custom.setup(gamedatas);
         this.setupNotifications();
         console.log("Ending game setup");
     };
@@ -175,35 +146,41 @@ var GameBody = /** @class */ (function (_super) {
     GameBody.prototype.onButtonClick = function (event) {
         console.log("onButtonClick", event);
     };
-    GameBody.prototype.onUpdateActionButtons_playerTurnA = function (args) {
+    GameBody.prototype.onUpdateActionButtons_PlayerTurn = function (args) {
         var _this = this;
-        this.addActionButton("b1", _("Play Card"), function () { return _this.ajaxcallwrapper("playCard"); });
-        this.addActionButton("b2", _("Vote"), function () { return _this.ajaxcallwrapper("playVote"); });
-        this.addActionButton("b3", _("Pass"), function () { return _this.ajaxcallwrapper("pass"); });
+        this.statusBar.addActionButton(_("Play Card"), function () { return _this.bgaPerformAction("action_playCard", { card_id: 1 }); });
+        this.statusBar.addActionButton(_("Vote"), function () { return _this.bgaPerformAction("action_playVote"); });
+        this.statusBar.addActionButton(_("Pass"), function () { return _this.bgaPerformAction("action_pass"); });
     };
-    GameBody.prototype.onUpdateActionButtons_playerTurnB = function (args) {
+    GameBody.prototype.onUpdateActionButtons_MultiPlayerTurn = function (args) {
         var _this = this;
-        this.addActionButton("b1", _("Support"), function () { return _this.ajaxcallwrapper("playSupport"); });
-        this.addActionButton("b2", _("Oppose"), function () { return _this.ajaxcallwrapper("playOppose"); });
-        this.addActionButton("b3", _("Wait"), function () { return _this.ajaxcallwrapper("playWait"); });
+        this.statusBar.addActionButton(_("Support"), function () { return _this.bgaPerformAction("action_playSupport"); });
+        this.statusBar.addActionButton(_("Oppose"), function () { return _this.bgaPerformAction("action_playOppose"); });
+        this.statusBar.addActionButton(_("Wait"), function () { return _this.bgaPerformAction("action_playWait"); });
     };
     GameBody.prototype.setupNotifications = function () {
-        for (var m in this) {
-            if (typeof this[m] == "function" && m.startsWith("notif_")) {
-                dojo.subscribe(m.substring(6), this, m);
-            }
-        }
+        console.log("notifications subscriptions setup");
+        // automatically listen to the notifications, based on the `notif_xxx` function on this class.
+        this.bgaSetupPromiseNotifications();
     };
-    GameBody.prototype.notif_message = function (notif) {
-        console.log("notif", notif);
+    GameBody.prototype.notif_message = function (args) {
+        console.log("notif", args);
     };
     return GameBody;
 }(GameBasics));
+/**
+ * This is only code that has to use dojo
+ * Note: this only works when targeting ES5
+ */
 define([
     "dojo",
     "dojo/_base/declare",
     "ebg/core/gamegui",
-    "ebg/counter"
-], function (dojo, declare) {
+    // libs
+    getLibUrl("bga-animations", "1.x"),
+    getLibUrl("bga-cards", "1.x")
+], function (dojo, declare, gamegui, BgaAnimations, BgaCards) {
+    window.BgaAnimations = BgaAnimations; //trick
+    window.BgaCards = BgaCards;
     declare("bgagame.dojoless", ebg.core.gamegui, new GameBody());
 });

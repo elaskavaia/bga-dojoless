@@ -1,16 +1,25 @@
 /** Game class */
 class GameBody extends GameBasics {
-  varfoo: CustomModule;
+  custom: CustomModule;
   constructor() {
     super();
-    this.varfoo = new CustomModule(); // this example of class from custom module
+    this.custom = new CustomModule(); // this example of class from custom module
   }
 
   setup(gamedatas) {
     super.setup(gamedatas);
     //super.setup(gamedatas);
-    this.createDiv(undefined, "whiteblock cow", "thething").innerHTML = _("Should we eat the cow?");
-    this.varfoo.setup(gamedatas);
+
+    this.getGameAreaElement().insertAdjacentHTML(
+      "beforeend",
+      ` 
+<div id="thething">
+  <div class="whiteblock cow">${_("Should we eat the cow now?")}</div>
+</div>
+      `
+    );
+
+    this.custom.setup(gamedatas);
     this.setupNotifications();
     console.log("Ending game setup");
   }
@@ -20,26 +29,24 @@ class GameBody extends GameBasics {
     console.log("onButtonClick", event);
   }
 
-  onUpdateActionButtons_playerTurnA(args) {
-    this.addActionButton("b1", _("Play Card"), () => this.ajaxcallwrapper("playCard"));
-    this.addActionButton("b2", _("Vote"), () => this.ajaxcallwrapper("playVote"));
-    this.addActionButton("b3", _("Pass"), () => this.ajaxcallwrapper("pass"));
+  onUpdateActionButtons_PlayerTurn(args) {
+    this.statusBar.addActionButton(_("Play Card"), () => this.bgaPerformAction("action_playCard", { card_id: 1 }));
+    this.statusBar.addActionButton(_("Vote"), () => this.bgaPerformAction("action_playVote"));
+    this.statusBar.addActionButton(_("Pass"), () => this.bgaPerformAction("action_pass"));
   }
-  onUpdateActionButtons_playerTurnB(args) {
-    this.addActionButton("b1", _("Support"), () => this.ajaxcallwrapper("playSupport"));
-    this.addActionButton("b2", _("Oppose"), () => this.ajaxcallwrapper("playOppose"));
-    this.addActionButton("b3", _("Wait"), () => this.ajaxcallwrapper("playWait"));
-  }
-
-  setupNotifications(): void {
-    for (var m in this) {
-      if (typeof this[m] == "function" && m.startsWith("notif_")) {
-        dojo.subscribe(m.substring(6), this, m);
-      }
-    }
+  onUpdateActionButtons_MultiPlayerTurn(args) {
+    this.statusBar.addActionButton(_("Support"), () => this.bgaPerformAction("action_playSupport"));
+    this.statusBar.addActionButton(_("Oppose"), () => this.bgaPerformAction("action_playOppose"));
+    this.statusBar.addActionButton(_("Wait"), () => this.bgaPerformAction("action_playWait"));
   }
 
-  notif_message(notif: any): void {
-    console.log("notif", notif);
+  setupNotifications() {
+    console.log("notifications subscriptions setup");
+
+    // automatically listen to the notifications, based on the `notif_xxx` function on this class.
+    this.bgaSetupPromiseNotifications();
+  }
+  notif_message(args: any): void {
+    console.log("notif", args);
   }
 }
