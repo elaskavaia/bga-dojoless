@@ -10,11 +10,6 @@
         "match": ".*\\.scss$",
         "isAsync": true,
         "cmd": "npm run build:scss"
-      },
-      {
-        "match": "misc/.*material\\.csv$",
-        "isAsync": true,
-        "cmd": "php8.4 misc/other/genmat.php ${file}"
       }
     ]
   },

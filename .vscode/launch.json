@@ -5,12 +5,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "PHP: Listen for Xdebug",
-      "type": "php",
-      "request": "launch",
-      "port": 9003
-    },
-    {
       "name": "PHP: Launch currently open script",
       "type": "php",
       "request": "launch",
@@ -21,33 +15,6 @@
       "env": {
         "XDEBUG_MODE": "debug,develop",
         "XDEBUG_CONFIG": "client_port=${port} idekey=VSCODE",
-
-        "APP_GAMEMODULE_PATH": "${userHome}/git/bga-sharedcode/misc/"
-      }
-    },
-    {
-      "name": "PHP: debug predeploy",
-      "type": "php",
-      "request": "launch",
-      "program": "${workspaceFolder}/modules/_testpredeploy.php",
-      "cwd": "${workspaceFolder}",
-      "port": 0,
-      "runtimeArgs": ["-dxdebug.start_with_request=yes"],
-      "env": {
-        "XDEBUG_MODE": "debug,develop",
-        "XDEBUG_CONFIG": "client_port=${port} idekey=VSCODE",
-
-        "APP_GAMEMODULE_PATH": "${userHome}/git/bga-sharedcode/misc/"
-      }
-    },
-    {
-      "name": "PHP: predeploy",
-      "type": "php",
-      "request": "launch",
-      "program": "${workspaceFolder}/modules/_testpredeploy.php",
-      "cwd": "${workspaceFolder}",
-      "port": 0,
-      "env": {
         "APP_GAMEMODULE_PATH": "${userHome}/git/bga-sharedcode/misc/"
       }
     }
