@@ -20,7 +20,15 @@ declare(strict_types=1);
 
 namespace Bga\Games\dojoless;
 
+use Bga\GameFramework\NotificationMessage;
+use BgaSystemException;
+use BgaUserException;
+
 class Game extends \Bga\GameFramework\Table {
+    public static Game $instance;
+
+    public Material $material;
+
     function __construct() {
         // Your global variables labels:
         //  Here, you can assign labels to global variables you are using for this game.
@@ -29,7 +37,8 @@ class Game extends \Bga\GameFramework\Table {
         //  the corresponding ID in gameoptions.inc.php.
         // Note: afterwards, you can get/set the global variables with getGameStateValue/setGameStateInitialValue/setGameStateValue
         parent::__construct();
-        require "material.inc.php";
+        Game::$instance = $this;
+
         self::initGameStateLabels([
             //    "my_first_global_variable" => 10,
             //    "my_second_global_variable" => 11,
@@ -38,6 +47,8 @@ class Game extends \Bga\GameFramework\Table {
             //    "my_second_game_variant" => 101,
             //      ...
         ]);
+
+        $this->material = new Material();
 
         // $this->notify->addDecorator(function (string $message, array $args) {
         //     if (isset($args["player_id"]) && !isset($args["player_name"]) && str_contains($message, '${player_name}')) {
@@ -153,6 +164,40 @@ class Game extends \Bga\GameFramework\Table {
      * In this space, you can put any utility methods useful for your game logic
      */
 
+    /**
+     * This will throw an exception if condition is false.
+     * The message should be translated and shown to the user.
+     *
+     * @param $message string or NotificationMessage
+     *            user side error message, translation is needed, use clienttranslate() when passing string to it (because it needs to be marked but this method will wrap it into _)
+     * @param $cond boolean
+     *            condition of assert
+
+     * @throws BgaUserException
+     */
+    function userAssert(string|NotificationMessage $message, bool $cond = false) {
+        if ($cond) {
+            return;
+        }
+        throw new BgaUserException($message);
+    }
+    /**
+     * This will throw an exception if condition is false.
+     * This only can happened if user hacks the game, client must prevent this
+     *
+     * @param string $log
+     *            server side log message, no translation needed
+     * @param bool $cond
+     *            condition of assert
+     * @throws BgaUserException
+     */
+    function systemAssert($log, $cond = false) {
+        if ($cond) {
+            return;
+        }
+        $this->error($log);
+        throw new BgaUserException("Internal Error. That should not have happened. Reload page and Retry [$log]");
+    }
     //////////////////////////////////////////////////////////////////////////////
     //////////// Zombie
     ////////////

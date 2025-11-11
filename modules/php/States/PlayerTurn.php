@@ -20,8 +20,8 @@ class PlayerTurn extends GameState {
             descriptionMyTurn: clienttranslate('${you} must play a card or pass'), // We tell the ACTIVE player what they must do
             // We suround the code with clienttranslate() so that the text is sent to the client for translation (this will enable the game to support other languages)
             transitions: [
-                "next" => StateConstants::STATE_GAME_TURN_NEXT_PLAYER,
-                "pass" => StateConstants::STATE_GAME_TURN_NEXT_PLAYER,
+                "next" => StateConstants::STATE_NEXT_PLAYER,
+                "pass" => StateConstants::STATE_NEXT_PLAYER,
                 "vote" => StateConstants::STATE_MULTI_PLAYER_TURN,
             ]
         );
@@ -29,6 +29,10 @@ class PlayerTurn extends GameState {
 
     public function getArgs(): array {
         return [];
+    }
+
+    public function onEnteringState() {
+        //nothing
     }
     #[PossibleAction]
     function action_playCard(int $card_id, int $active_player_id) {

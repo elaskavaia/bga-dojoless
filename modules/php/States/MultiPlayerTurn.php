@@ -20,12 +20,12 @@ class MultiPlayerTurn extends GameState {
             descriptionMyTurn: clienttranslate('${you} must choose to support ${otherplayer} or oppose'),
             // We suround the code with clienttranslate() so that the text is sent to the client for translation (this will enable the game to support other languages)
             transitions: [
-                "next" => StateConstants::STATE_GAME_TURN_NEXT_PLAYER,
+                "next" => StateConstants::STATE_NEXT_PLAYER,
             ]
         );
     }
 
-    public function getArgs(int $player_id): array {
+    public function getArgs(): array {
         $game = $this->game;
         return ["otherplayer" => $game->getActivePlayerName(), "otherplayer_id" => $game->getActivePlayerId()];
     }
@@ -35,21 +35,24 @@ class MultiPlayerTurn extends GameState {
     }
 
     #[PossibleAction]
-    function action_playSupport(int $player_id) {
+    function action_playSupport() {
+        $player_id = (int) $this->game->getCurrentPlayerId();
         $this->notify->all("message", clienttranslate('${player_name} supports'), [
             "player_id" => $player_id,
         ]);
         $this->gamestate->setPlayerNonMultiactive($player_id, "next");
     }
     #[PossibleAction]
-    function action_playOppose(int $player_id) {
+    function action_playOppose() {
+        $player_id = (int) $this->game->getCurrentPlayerId();
         $this->notify->all("message", clienttranslate('${player_name} opposes'), [
             "player_id" => $player_id,
         ]);
         $this->gamestate->setPlayerNonMultiactive($player_id, "next");
     }
     #[PossibleAction]
-    function action_playWait(int $player_id) {
+    function action_playWait() {
+        $player_id = (int) $this->game->getCurrentPlayerId();
         $this->notify->all("message", clienttranslate('${player_name} waits'), [
             "player_id" => $player_id,
         ]);

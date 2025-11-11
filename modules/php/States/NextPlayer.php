@@ -9,11 +9,11 @@ use Bga\Games\dojoless\Game;
 use Bga\GameFramework\States\GameState;
 use Bga\Games\dojoless\StateConstants;
 
-class Dispatch extends GameState {
+class NextPlayer extends GameState {
     public function __construct(protected Game $game) {
         parent::__construct(
             $game,
-            id: StateConstants::STATE_GAME_TURN_NEXT_PLAYER,
+            id: StateConstants::STATE_NEXT_PLAYER,
             //
             type: StateType::GAME
         );
