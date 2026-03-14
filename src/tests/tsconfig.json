@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "lib": ["dom", "esnext"],
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "types": ["mocha", "node"],
+    "typeRoots": ["../types", "../../node_modules/@types"],
+    "skipLibCheck": true,
+    "rootDir": "../.."
+  },
+  "files": ["../../bga-framework.d.ts"],
+  "include": ["./**/*.spec.ts", "./setup.ts", "../**/*.ts", "../types/**/*.d.ts"],
+  "exclude": ["node_modules"],
+  "ts-node": {
+    "transpileOnly": true
+  }
+}

@@ -1,10 +1,10 @@
 /**
  * Custom module
  */
-class CustomModule {
+export class CustomModule {
   gamedatas: any;
-  setup(gamedatas: any){
-     this.gamedatas = gamedatas;
-     console.log("hello from setup of MyFoo");
+  setup(gamedatas: any) {
+    this.gamedatas = gamedatas;
+    console.log("hello from setup of MyFoo");
   }
-};
+}
