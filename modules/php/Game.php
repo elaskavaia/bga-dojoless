@@ -20,9 +20,9 @@ declare(strict_types=1);
 
 namespace Bga\Games\dojoless;
 
+use Bga\Games\dojoless\States\PlayerTurn;
 use Bga\GameFramework\NotificationMessage;
-use BgaSystemException;
-use BgaUserException;
+use Bga\GameFramework\UserException;
 
 class Game extends \Bga\GameFramework\Table {
     public static Game $instance;
@@ -39,7 +39,7 @@ class Game extends \Bga\GameFramework\Table {
         parent::__construct();
         Game::$instance = $this;
 
-        self::initGameStateLabels([
+        $this->initGameStateLabels([
             //    "my_first_global_variable" => 10,
             //    "my_second_global_variable" => 11,
             //      ...
@@ -50,7 +50,7 @@ class Game extends \Bga\GameFramework\Table {
 
         $this->material = new Material();
 
-        // $this->notify->addDecorator(function (string $message, array $args) {
+        // $this->bga->notify->addDecorator(function (string $message, array $args) {
         //     if (isset($args["player_id"]) && !isset($args["player_name"]) && str_contains($message, '${player_name}')) {
         //         $args["player_name"] = $this->getPlayerNameById($args["player_id"]);
         //     }
@@ -68,32 +68,20 @@ class Game extends \Bga\GameFramework\Table {
     */
     protected function setupNewGame($players, $options = []) {
         // Set the colors of the players with HTML color code
-        // The default below is red/green/blue/orange/brown
-        // The number of colors defined here must correspond to the maximum number of players allowed for the gams
-        $gameinfos = self::getGameinfos();
+        // The number of colors defined here must correspond to the maximum number of players allowed for the game
+        $gameinfos = $this->getGameinfos();
         $default_colors = $gameinfos["player_colors"];
 
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
-        $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
-        $values = [];
         foreach ($players as $player_id => $player) {
-            $color = array_shift($default_colors);
-            $values[] =
-                "('" .
-                $player_id .
-                "','$color','" .
-                $player["player_canal"] .
-                "','" .
-                addslashes($player["player_name"]) .
-                "','" .
-                addslashes($player["player_avatar"]) .
-                "')";
+            $query_values[] = vsprintf("(%s, '%s', '%s')", [$player_id, array_shift($default_colors), addslashes($player["player_name"])]);
         }
-        $sql .= implode(",", $values);
-        self::DbQuery($sql);
-        self::reattributeColorsBasedOnPreferences($players, $gameinfos["player_colors"]);
-        self::reloadPlayersBasicInfos();
+        static::DbQuery(
+            sprintf("INSERT INTO `player` (`player_id`, `player_color`, `player_name`) VALUES %s", implode(",", $query_values))
+        );
+        $this->reattributeColorsBasedOnPreferences($players, $gameinfos["player_colors"]);
+        $this->reloadPlayersBasicInfos();
 
         /************ Start the game initialization *****/
 
@@ -102,8 +90,8 @@ class Game extends \Bga\GameFramework\Table {
 
         // Init game statistics
         // (note: statistics used in this file must be defined in your stats.inc.php file)
-        //self::initStat( 'table', 'table_teststat1', 0 );    // Init a table statistics
-        //self::initStat( 'player', 'player_teststat1', 0 );  // Init a player statistics (for all players)
+        // $this->tableStats->init('table_teststat1', 0);
+        // $this->playerStats->init('player_teststat1', 0);
 
         // TODO: setup the initial game situation here
 
@@ -111,6 +99,8 @@ class Game extends \Bga\GameFramework\Table {
         $this->activeNextPlayer();
 
         /************ End of the game initialization *****/
+
+        return PlayerTurn::class;
     }
 
     /*
@@ -122,15 +112,13 @@ class Game extends \Bga\GameFramework\Table {
         _ when the game starts
         _ when a player refreshes the game page (F5)
     */
-    protected function getAllDatas(): array {
-        $result = ["players" => []];
-
-        $current_player_id = self::getCurrentPlayerId(); // !! We must only return informations visible by this player !!
+    protected function getAllDatas(int $currentPlayerId): array {
+        $result = [];
 
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
         $sql = "SELECT player_id id, player_score score FROM player ";
-        $result["players"] = self::getCollectionFromDb($sql);
+        $result["players"] = $this->getCollectionFromDb($sql);
 
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
 
@@ -173,13 +161,13 @@ class Game extends \Bga\GameFramework\Table {
      * @param $cond boolean
      *            condition of assert
 
-     * @throws BgaUserException
+     * @throws UserException
      */
     function userAssert(string|NotificationMessage $message, bool $cond = false) {
         if ($cond) {
             return;
         }
-        throw new BgaUserException($message);
+        throw new UserException($message);
     }
     /**
      * This will throw an exception if condition is false.
@@ -189,45 +177,15 @@ class Game extends \Bga\GameFramework\Table {
      *            server side log message, no translation needed
      * @param bool $cond
      *            condition of assert
-     * @throws BgaUserException
+     * @throws UserException
      */
     function systemAssert($log, $cond = false) {
         if ($cond) {
             return;
         }
         $this->error($log);
-        throw new BgaUserException("Internal Error. That should not have happened. Reload page and Retry [$log]");
+        throw new UserException("Internal Error. That should not have happened. Reload page and Retry [$log]");
     }
-    //////////////////////////////////////////////////////////////////////////////
-    //////////// Zombie
-    ////////////
-
-    /*
-        zombieTurn:
-        
-        This method is called each time it is the turn of a player who has quit the game (= "zombie" player).
-        You can do whatever you want in order to make sure the turn of this player ends appropriately
-        (ex: pass).
-    */
-
-    function zombieTurn($state, $active_player) {
-        $statename = $state["name"];
-        if ($state["type"] === "activeplayer") {
-            switch ($statename) {
-                default:
-                    $this->gamestate->nextState("next");
-                    break;
-            }
-            return;
-        }
-        if ($state["type"] === "multipleactiveplayer") {
-            // Make sure player is in a non blocking status for role turn
-            $this->gamestate->setPlayerNonMultiactive($active_player, "next");
-            return;
-        }
-        throw new \BgaUserException("Zombie mode not supported at this game state: " . $statename);
-    }
-
     ///////////////////////////////////////////////////////////////////////////////////:
     ////////// DB upgrade
     //////////

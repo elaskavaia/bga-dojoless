@@ -10,7 +10,9 @@
     "watch:scss": "sass --watch src/css/dojoless.scss dojoless.css",
     "watch": "npm run watch:ts && npm run watch:scss",
     "build": "npm run build:ts && npm run build:scss",
-    "jstests": "TS_NODE_PROJECT=src/tests/tsconfig.json mocha -r ts-node/register -r src/tests/setup.ts src/tests/**/*.spec.ts"
+    "jstests": "TS_NODE_PROJECT=src/tests/tsconfig.json mocha -r ts-node/register -r src/tests/setup.ts src/tests/**/*.spec.ts",
+    "test": "APP_GAMEMODULE_PATH=~/git/bga-sharedcode/misc/ phpunit --testdox --colors=always",
+    "tests": "npm run test -- modules/php/Tests"
   },
   "author": "Alena Laskavaia",
   "license": "EPL2.0",

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+         bootstrap="modules/php/Tests/_autoload.php"
+         colors="true"
+         testdox="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerWarnings="true">
+    <testsuites>
+        <testsuite name="default">
+            <directory>modules/php/Tests</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>modules/php</directory>
+        </include>
+        <exclude>
+            <directory>modules/php/Tests</directory>
+        </exclude>
+    </source>
+</phpunit>
